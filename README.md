@@ -7,3 +7,4 @@ Future mise à jour:
 - Zip des dossiers
 - Meilleur erreur handling
 - Ajout d'une interface avec Phantom.js pour permettre aussi la recherche d'historique sur l'intranet de traçabilité. 
+- Faire un installeur (package python requis) pour le script 
