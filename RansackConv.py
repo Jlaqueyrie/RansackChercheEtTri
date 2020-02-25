@@ -7,7 +7,6 @@ from os import getcwd, path, makedirs, remove
 from consolemenu import SelectionMenu
 import ctypes
 import pandas as pd
-from StyleFrame import StyleFrame, Styler, utils
 
 ctypes.windll.kernel32.SetConsoleTitleW("Recherche de logs")
 
@@ -267,19 +266,10 @@ else:
     df = pd.DataFrame({'sn' : lstSnDf,
                        'typeTesteur' : lstEquipementDf,
                        'typeFichier' : lstTypeDf})
-
-    writer = StyleFrame.ExcelWriter("pandas.xlsx")
     grb = pd.DataFrame(df.groupby(['sn', 'typeTesteur', 'typeFichier']).size(), columns=['total'])
 
-    sf=StyleFrame(grb)
-
-    sf.apply_column_style(cols_to_style=df.columns, styler_obj=Styler(bg_color=utils.colors.white, bold=True, font=utils.fonts.arial,font_size=8),style_header=True)
-
-    sf.apply_headers_style(styler_obj=Styler(bg_color=utils.colors.blue, bold=True, font_size=8, font_color=utils.colors.white, number_format=utils.number_formats.general, protection=False))
-    grb = pd.DataFrame(df.groupby(['sn', 'typeTesteur', 'typeFichier']).size(), columns=['total'])
     chnSynthese = path.join(repRacine, nomRecherche, 'syntheseFichierTrouve.xlsx')
-    grb.to_excel(chnSynthese, engine='xlsxwriter')
+    grb.to_excel(chnSynthese)
 
-  #  test github
     input()
     #exit()
