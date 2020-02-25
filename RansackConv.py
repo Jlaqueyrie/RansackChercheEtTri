@@ -5,14 +5,11 @@ import psutil
 from shutil import copy
 from os import getcwd, path, makedirs, remove
 from consolemenu import SelectionMenu
-import xlsxwriter
 import ctypes
-ctypes.windll.kernel32.SetConsoleTitleW("Recherche de logs")
+import pandas as pd
+from StyleFrame import StyleFrame, Styler, utils
 
-workbook = xlsxwriter.Workbook('Example2.xlsx')
-worksheet = workbook.add_worksheet()
-row = 0
-column = 0
+ctypes.windll.kernel32.SetConsoleTitleW("Recherche de logs")
 
 """Variable"""
 lst = ""
@@ -25,6 +22,10 @@ numCrit = 0
 maxTentative = 3
 retour = 0
 inputNok = True
+
+lstSnDf = []
+lstTypeDf = []
+lstEquipementDf = []
 
 fichierResultat = getcwd() + r"\RansackResultat.csv"
 chnRansack = r"C:\Program Files\Mythicsoft\Agent Ransack\AgentRansack.exe"
@@ -153,21 +154,19 @@ def quelType(nomProduit, cheminFichier):
     return resultat
 
 
-menu = SelectionMenu(lstProduit, "Select an option")
+menu = SelectionMenu(lstProduit, "Sélectionner une option")
 menu.show()
 numCrit = menu.selected_option
 
 #option exit du menu
 if numCrit == len(lstProduit):
-
     exit()
-
 else:
 
-    print('lancer une recherche pour \
-        les produits de type : {}'.format(lstProduit[numCrit]))
+    print('Lancer une recherche pour \
+           les produits de type : {}'.format(lstProduit[numCrit]))
 
-    input('Presser une touche')
+    input('Presser une touche pour démarrer la recherche')
 
     # MAIN PROGRAM
     lst = pyperclip.paste()
@@ -185,21 +184,21 @@ else:
             strRansack = "*{}*".format(lst)
 
     else:
-        print('aucun caractère à rechercher')
-        input("presser une touche pour sortir")
+        print('Aucun caractère à rechercher')
+        input("Presser une touche pour sortir")
         exit()
 
     #Pyperclip.copy(chnransack[:-1])
 
     cmd = "\"{0}\" {1} -o \"{3}\"  -ofc -f \"{2}\" ".format(chnRansack, savedSearch[numCrit], strRansack, fichierResultat)
 
-    print("recherche des caractères suivants : {}".format(strRansack))
+    print("Recherche des caractères suivants : {}".format(strRansack))
 
     retour = subprocess.run(cmd, shell=True)
-    print("recherche en cours patienter")
+    print("Recherche en cours patienter")
 
     nomRecherche = ''
-    nomRecherche = input('entrée un nom pour la recherche')
+    nomRecherche = input('Entrée un nom pour la recherche')
 
     with open(fichierResultat) as rsltRecherche:
         contenuFichier = csv.reader(rsltRecherche, delimiter=',')
@@ -253,11 +252,33 @@ else:
     # tester cette fonction : nom des paramètre en anglais
 
     for proc in psutil.process_iter():
-        # check whether the process name matches
+        # check whether the repRaciprocess name matches
         if proc.name() == PROCNAME:
             proc.kill()
 
     strRansack = ""
-    print(lstFichierTrouve)
+
+    for test in lstFichierTrouve:
+        print(test)
+        lstSnDf.append(test.get('numSerie'))
+        lstTypeDf.append(test.get('typeFichier'))
+        lstEquipementDf.append(test.get('typeTesteur'))
+
+    df = pd.DataFrame({'sn' : lstSnDf,
+                       'typeTesteur' : lstEquipementDf,
+                       'typeFichier' : lstTypeDf})
+
+    writer = StyleFrame.ExcelWriter("pandas.xlsx")
+    grb = pd.DataFrame(df.groupby(['sn', 'typeTesteur', 'typeFichier']).size(), columns=['total'])
+
+    sf=StyleFrame(grb)
+
+    sf.apply_column_style(cols_to_style=df.columns, styler_obj=Styler(bg_color=utils.colors.white, bold=True, font=utils.fonts.arial,font_size=8),style_header=True)
+
+    sf.apply_headers_style(styler_obj=Styler(bg_color=utils.colors.blue, bold=True, font_size=8, font_color=utils.colors.white, number_format=utils.number_formats.general, protection=False))
+    grb = pd.DataFrame(df.groupby(['sn', 'typeTesteur', 'typeFichier']).size(), columns=['total'])
+    chnSynthese = path.join(repRacine, nomRecherche, 'syntheseFichierTrouve.xlsx')
+    grb.to_excel(chnSynthese, engine='xlsxwriter')
+
     input()
     #exit()
