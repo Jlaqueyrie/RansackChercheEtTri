@@ -280,5 +280,6 @@ else:
     chnSynthese = path.join(repRacine, nomRecherche, 'syntheseFichierTrouve.xlsx')
     grb.to_excel(chnSynthese, engine='xlsxwriter')
 
+  #  test github
     input()
     #exit()
